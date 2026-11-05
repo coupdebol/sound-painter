@@ -1,0 +1,9 @@
+{
+  "name": "Sound Painter",
+  "short_name": "SoundPaint",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#16171a",
+  "theme_color": "#16171a",
+  "start_url": "./"
+}

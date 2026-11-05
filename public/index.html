@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#16171a">
+  <title>Sound Painter</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="power">
+    <button>
+      <span class="power-icon">⏻</span>
+      <span>TAP TO POWER ON</span>
+      <small>Paint a waveform · draw a pattern · twist the knobs</small>
+    </button>
+  </div>
+
+  <header class="topbar">
+    <div class="brand">SOUND<b>PAINTER</b><small>SP-01 · drawn-wave acid synth</small></div>
+    <button id="play" class="big">▶ PLAY</button>
+    <div class="row">
+      <div data-knob="bpm"></div>
+      <div data-knob="swing"></div>
+      <div data-knob="volume"></div>
+    </div>
+    <select id="preset" aria-label="Sound preset"></select>
+    <canvas id="scope" title="Tap to switch scope / spectrum"></canvas>
+  </header>
+
+  <main class="rack">
+    <section class="module m-wave">
+      <h2>WAVE PAINT <span class="hint">draw one cycle with your finger</span></h2>
+      <div class="tabs">
+        <button data-slot="A">OSC A</button>
+        <button data-slot="B">OSC B</button>
+      </div>
+      <canvas id="wave"></canvas>
+      <div class="tools">
+        <button data-wave="sine">SIN</button>
+        <button data-wave="tri">TRI</button>
+        <button data-wave="saw">SAW</button>
+        <button data-wave="square">SQR</button>
+        <button data-wave="pulse">PLS</button>
+        <button data-wave="organ">ORG</button>
+        <button id="waveSmooth">SMOOTH</button>
+        <button id="waveNorm">NORM</button>
+      </div>
+    </section>
+
+    <section class="module m-osc">
+      <h2>OSC</h2>
+      <div class="row wrap">
+        <div data-knob="oscMix"></div>
+        <div data-knob="oscBOct"></div>
+        <div data-knob="oscBDetune"></div>
+        <div data-knob="glide"></div>
+      </div>
+    </section>
+
+    <section class="module m-filter">
+      <h2>FILTER <span class="hint">24dB</span></h2>
+      <div class="row wrap">
+        <div data-knob="cutoff" class="lg"></div>
+        <div data-knob="reso" class="lg"></div>
+        <div data-knob="envMod"></div>
+        <div data-knob="drive"></div>
+      </div>
+      <div id="fType"></div>
+    </section>
+
+    <section class="module m-fenv">
+      <h2>FILTER ENV</h2>
+      <div class="row faders">
+        <div data-fader="fA"></div><div data-fader="fD"></div><div data-fader="fS"></div><div data-fader="fR"></div>
+      </div>
+    </section>
+
+    <section class="module m-aenv">
+      <h2>AMP ENV</h2>
+      <div class="row faders">
+        <div data-fader="aA"></div><div data-fader="aD"></div><div data-fader="aS"></div><div data-fader="aR"></div>
+      </div>
+    </section>
+
+    <section class="module m-acid">
+      <h2>ACID</h2>
+      <div class="row wrap">
+        <div data-knob="accent"></div>
+        <div data-knob="gate"></div>
+      </div>
+    </section>
+
+    <section class="module m-fx">
+      <h2>DELAY</h2>
+      <div class="row wrap">
+        <div data-knob="delayFb"></div>
+        <div data-knob="delayMix"></div>
+      </div>
+      <div id="delayDiv"></div>
+    </section>
+
+    <section class="module m-seq">
+      <h2>SEQUENCER <span class="hint">swipe to paint notes · tap a note to remove</span></h2>
+      <div class="seq-bar">
+        <div class="patterns">
+          <button data-pattern="0">1</button><button data-pattern="1">2</button><button data-pattern="2">3</button><button data-pattern="3">4</button>
+        </div>
+        <div id="seqLength"></div>
+        <div id="seqRate"></div>
+      </div>
+      <canvas id="grid"></canvas>
+      <div class="seq-bar">
+        <button id="toolDraw">✎ DRAW</button>
+        <button id="toolErase">⌫ ERASE</button>
+        <button id="shiftL">◀</button>
+        <button id="shiftR">▶</button>
+        <button id="dice">⚄ DICE</button>
+        <button id="clear">CLEAR</button>
+        <span class="spacer"></span>
+        <select id="root" aria-label="Root note"></select>
+        <select id="scale" aria-label="Scale"></select>
+        <button id="seqOctDown">−</button><span id="seqOctVal" class="readout"></span><button id="seqOctUp">+</button>
+      </div>
+    </section>
+
+    <section class="module m-arp">
+      <h2>ARPEGGIATOR</h2>
+      <div class="seq-bar">
+        <button id="arpOn" class="led">ARP ON</button>
+        <button id="arpLatch" class="led">LATCH</button>
+      </div>
+      <label class="mini">MODE</label><div id="arpMode"></div>
+      <label class="mini">OCTAVES</label><div id="arpOct"></div>
+      <label class="mini">RATE</label><div id="arpRate"></div>
+      <p class="hint">Turn ARP on, hold a chord on the keys. LATCH keeps it running.</p>
+    </section>
+
+    <section class="module m-keys">
+      <div class="seq-bar">
+        <div id="keyMode"></div>
+        <span id="transposeVal" class="readout"></span>
+        <span class="spacer"></span>
+        <button id="kbOctDown">− OCT</button><span id="kbOctVal" class="readout"></span><button id="kbOctUp">OCT +</button>
+      </div>
+      <div id="keys"></div>
+    </section>
+  </main>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

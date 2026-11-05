@@ -1,0 +1,10 @@
+{
+  "name": "sound-painter",
+  "version": "0.1.0",
+  "description": "Touch synth / groovebox proof of concept: paint waveforms and acid patterns with your fingers.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "license": "MIT"
+}
