@@ -33,7 +33,7 @@ html, body {
   -webkit-touch-callout: none;
   overscroll-behavior: none;
 }
-body { padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); }
+body { padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 
 button, select {
   font: inherit;
@@ -188,7 +188,6 @@ button.led.on { background: var(--scope); border-color: var(--scope); color: #06
   .m-seq, .m-arp { grid-column: span 12; }
 }
 @media (max-width: 640px) {
-  body { padding: 8px 16px; }
   .rack > .module { grid-column: span 12; }
   .knob { width: 60px; }
   #grid { height: 260px; }
