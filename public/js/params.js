@@ -46,7 +46,7 @@ export const PARAMS = {
 export const CHOICES = {
   fType: { label: 'MODE', options: ['lowpass', 'bandpass', 'highpass'], names: ['LP', 'BP', 'HP'], def: 'lowpass' },
   delayDiv: { label: 'TIME', options: ['1/16', '1/8', '3/16', '1/4'], def: '3/16' },
-  seqLength: { label: 'STEPS', options: [4, 8, 12, 16, 24, 32], def: 16 },
+  seqLength: { label: 'STEPS', options: [4, 8, 11, 12, 13, 16, 24, 32], def: 16 },
   seqRate: { label: 'RATE', options: ['1/8', '1/16', '1/32'], def: '1/16' },
   arpMode: { label: 'MODE', options: ['up', 'down', 'updown', 'random', 'played'], names: ['UP', 'DOWN', 'UP/DN', 'RAND', 'ORDER'], def: 'up' },
   arpOct: { label: 'OCT', options: [1, 2, 3], def: 1 },

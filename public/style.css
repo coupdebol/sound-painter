@@ -53,7 +53,7 @@ button:active { transform: translateY(1px); }
 button.on { background: var(--accent); border-color: var(--accent); color: #1a1208; }
 select { appearance: none; -webkit-appearance: none; padding-right: 22px; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 13px) 50%, calc(100% - 8px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
 
-.hidden { display: none !important; }
+.hidden, [hidden] { display: none !important; }
 
 /* ---------- power-on overlay */
 #power {
@@ -168,6 +168,41 @@ label.mini + .seg { margin-top: 3px; }
 .readout { font-size: 11px; font-weight: 700; color: var(--accent); min-width: 52px; text-align: center; font-variant-numeric: tabular-nums; }
 #grid { display: block; width: 100%; height: 300px; touch-action: none; border-radius: 8px; border: 1px solid var(--edge); background: var(--lane); }
 button.led.on { background: var(--scope); border-color: var(--scope); color: #06210f; }
+
+/* ---------- pattern bank */
+.bank-btn { background: var(--slide); border-color: var(--slide); color: #1d1600; }
+.sheet {
+  position: fixed; inset: 0; z-index: 5;
+  display: flex; align-items: flex-end; justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px));
+}
+.sheet-panel {
+  width: 100%; max-width: 1180px; max-height: 78vh; overflow-y: auto; overscroll-behavior: contain;
+  background: var(--panel); border: 1px solid var(--edge); border-bottom: none; border-radius: 16px 16px 0 0;
+  padding: 12px 14px max(16px, env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
+}
+.sheet-head { display: flex; align-items: flex-start; gap: 10px; justify-content: space-between; }
+.sheet-head h2 { margin: 8px 0 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button { border-radius: 999px; }
+#bankName {
+  font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--edge);
+  border-radius: 8px; min-height: 36px; padding: 0 10px; width: 190px; max-width: 100%;
+  -webkit-user-select: text; user-select: text;
+}
+.bank-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; margin-top: 8px; }
+.card {
+  position: relative; display: flex; flex-direction: column; align-items: stretch; gap: 4px;
+  text-align: left; padding: 8px; min-height: 0; letter-spacing: 0;
+}
+.card canvas { width: 100%; height: 46px; display: block; border-radius: 4px; background: var(--lane); }
+.card .name { font-size: 12px; font-weight: 700; }
+.card .meta { font-size: 10px; font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; }
+.card.on { background: var(--panel-2); border-color: var(--accent); color: var(--text); }
+.card .del { position: absolute; top: 4px; right: 4px; min-height: 26px; padding: 0 8px; font-size: 11px; }
+.bank-empty { color: var(--muted); padding: 16px 4px; }
 
 /* ---------- keyboard */
 #keys { position: relative; height: 140px; touch-action: none; }

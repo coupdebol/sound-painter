@@ -6,6 +6,7 @@ import { WavePainter, presetWave, smoothWave, normalizeWave } from './wavepaint.
 import { Scope } from './scope.js';
 import { PatternGrid } from './patterngrid.js';
 import { Keyboard } from './keyboard.js';
+import { BANK, CATEGORIES, parseNotes, encodeSteps } from './patternbank.js';
 
 const STORE_KEY = 'soundpainter.v1';
 const $ = (sel) => document.querySelector(sel);
@@ -39,6 +40,8 @@ function defaultState() {
     seq: { pattern: 0, length: 16, rate: '1/16', scale: 'minor', root: 9, octave: 2, transpose: 0 },
     arp: { on: false, mode: 'up', octaves: 1, rate: '1/16', latch: false },
     keys: { mode: 'play', octave: 3 },
+    userBank: [],
+    bankOpts: { tempo: false, keepKey: false },
   };
 }
 
@@ -55,6 +58,8 @@ function loadState() {
       seq: { ...d.seq, ...s.seq, transpose: 0 },
       arp: { ...d.arp, ...s.arp },
       keys: { ...d.keys, ...s.keys },
+      userBank: Array.isArray(s.userBank) ? s.userBank : [],
+      bankOpts: { ...d.bankOpts, ...s.bankOpts },
     };
   } catch (e) {
     return d;
@@ -182,8 +187,8 @@ const stepQueue = [];
 seq.onStep((ev) => stepQueue.push(ev));
 
 const lengthChoice = { options: CHOICES.seqLength.options };
-segmented($('#seqLength'), 'length', state.seq, () => { grid.draw(); save(); }, lengthChoice);
-segmented($('#seqRate'), 'rate', state.seq, save, CHOICES.seqRate);
+const renderLength = segmented($('#seqLength'), 'length', state.seq, () => { grid.draw(); save(); }, lengthChoice);
+const renderRate = segmented($('#seqRate'), 'rate', state.seq, save, CHOICES.seqRate);
 
 function renderPatternBtns() {
   $$('[data-pattern]').forEach((b) => b.classList.toggle('on', Number(b.dataset.pattern) === state.seq.pattern));
@@ -239,6 +244,124 @@ function shift(dir) {
 }
 $('#shiftL').addEventListener('pointerdown', () => shift(-1));
 $('#shiftR').addEventListener('pointerdown', () => shift(1));
+
+// ---------- pattern bank
+
+const bankEl = $('#bank');
+let bankCat = 'All';
+let bankLoaded = null;
+
+function openBank() {
+  $('#bankSlot').textContent = state.seq.pattern + 1;
+  bankEl.hidden = false;
+  renderBank();
+}
+$('#bankOpen').addEventListener('click', openBank);
+$('#bankClose').addEventListener('click', () => { bankEl.hidden = true; });
+bankEl.addEventListener('click', (e) => { if (e.target === bankEl) bankEl.hidden = true; });
+
+toggle($('#bankTempo'), () => state.bankOpts.tempo, () => { state.bankOpts.tempo = !state.bankOpts.tempo; save(); });
+toggle($('#bankKey'), () => state.bankOpts.keepKey, () => { state.bankOpts.keepKey = !state.bankOpts.keepKey; save(); });
+
+function loadPreset(p) {
+  const { pattern, length } = parseNotes(p.notes);
+  state.patterns[state.seq.pattern] = pattern;
+  state.seq.length = length;
+  state.seq.rate = p.rate || '1/16';
+  state.seq.scale = p.scale;
+  if (!state.bankOpts.keepKey) state.seq.root = p.root;
+  if (state.bankOpts.tempo && p.bpm) {
+    state.params.bpm = p.bpm;
+    engine.set('bpm');
+    renderers.forEach((r) => r());
+  }
+  renderLength();
+  renderRate();
+  scaleSel.value = state.seq.scale;
+  rootSel.value = state.seq.root;
+  grid.draw();
+  bankLoaded = p;
+  renderBank();
+  save();
+}
+
+$('#bankSave').addEventListener('click', () => {
+  const input = $('#bankName');
+  const name = input.value.trim() || `My Pattern ${state.userBank.length + 1}`;
+  state.userBank.push({
+    cat: 'My Patterns', name, scale: state.seq.scale, root: state.seq.root, bpm: Math.round(state.params.bpm),
+    rate: state.seq.rate, notes: encodeSteps(state.patterns[state.seq.pattern].steps, state.seq.length),
+  });
+  input.value = '';
+  bankCat = 'My Patterns';
+  renderBank();
+  save();
+});
+
+function renderBank() {
+  const cats = ['All', ...CATEGORIES, 'My Patterns'];
+  const chips = $('#bankCats');
+  chips.innerHTML = '';
+  for (const c of cats) {
+    const b = document.createElement('button');
+    b.textContent = c === 'My Patterns' ? `${c} (${state.userBank.length})` : c;
+    b.classList.toggle('on', c === bankCat);
+    b.addEventListener('click', () => { bankCat = c; renderBank(); });
+    chips.appendChild(b);
+  }
+  const all = [...BANK, ...state.userBank];
+  const list = bankCat === 'All' ? all : all.filter((p) => p.cat === bankCat);
+  const grid = $('#bankList');
+  grid.innerHTML = '';
+  if (!list.length) {
+    grid.innerHTML = '<p class="bank-empty">No saved patterns yet. Draw one in the sequencer, name it above and tap SAVE CURRENT.</p>';
+    return;
+  }
+  for (const p of list) {
+    const card = document.createElement('button');
+    card.className = 'card';
+    card.classList.toggle('on', p === bankLoaded);
+    const steps = p.notes.trim().split(/\s+/).length;
+    card.innerHTML = `<canvas></canvas><span class="name"></span><span class="meta">${NOTE_NAMES[p.root]} ${scaleNames[p.scale] || p.scale} · ${steps} steps${p.rate && p.rate !== '1/16' ? ' · ' + p.rate : ''} · ${p.bpm} bpm</span>`;
+    card.querySelector('.name').textContent = p.name;
+    card.addEventListener('click', () => loadPreset(p));
+    if (p.cat === 'My Patterns') {
+      const del = document.createElement('span');
+      del.className = 'del';
+      del.setAttribute('role', 'button');
+      del.setAttribute('aria-label', `Delete ${p.name}`);
+      del.textContent = '✕';
+      del.addEventListener('click', (e) => {
+        e.stopPropagation();
+        state.userBank.splice(state.userBank.indexOf(p), 1);
+        renderBank();
+        save();
+      });
+      card.appendChild(del);
+    }
+    grid.appendChild(card);
+    drawPreview(card.querySelector('canvas'), p);
+  }
+}
+
+function drawPreview(cv, p) {
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth || 160, h = cv.clientHeight || 46;
+  cv.width = w * dpr;
+  cv.height = h * dpr;
+  const g = cv.getContext('2d');
+  g.scale(dpr, dpr);
+  const css = getComputedStyle(document.documentElement);
+  const { pattern, length } = parseNotes(p.notes);
+  const cw = w / length;
+  pattern.steps.slice(0, length).forEach((st, i) => {
+    if (i % 4 === 0) { g.fillStyle = css.getPropertyValue('--beat').trim(); g.fillRect(i * cw, 0, 1, h); }
+    if (!st.on) return;
+    const y = h - 4 - (st.note / 24) * (h - 10);
+    g.fillStyle = css.getPropertyValue(st.accent ? '--accent-hot' : '--accent').trim();
+    g.fillRect(i * cw + 1, y - 3, cw - 2 + (st.slide ? 2 : 0), 5);
+  });
+}
 
 // ---------- arpeggiator
 

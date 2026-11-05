@@ -110,6 +110,7 @@
         <div class="patterns">
           <button data-pattern="0">1</button><button data-pattern="1">2</button><button data-pattern="2">3</button><button data-pattern="3">4</button>
         </div>
+        <button id="bankOpen" class="bank-btn">▤ BANK</button>
         <div id="seqLength"></div>
         <div id="seqRate"></div>
       </div>
@@ -150,6 +151,26 @@
       <div id="keys"></div>
     </section>
   </main>
+
+  <div id="bank" class="sheet" hidden>
+    <div class="sheet-panel" role="dialog" aria-label="Pattern bank">
+      <div class="sheet-head">
+        <h2>PATTERN BANK <span class="hint">tap a pattern to load it into slot <b id="bankSlot"></b>. Works while playing.</span></h2>
+        <button id="bankClose" aria-label="Close">✕</button>
+      </div>
+      <div class="seq-bar">
+        <div id="bankCats" class="chips"></div>
+      </div>
+      <div class="seq-bar">
+        <button id="bankTempo" class="led">SET TEMPO</button>
+        <button id="bankKey" class="led">KEEP MY KEY</button>
+        <span class="spacer"></span>
+        <input id="bankName" type="text" maxlength="24" placeholder="Name your pattern" autocomplete="off">
+        <button id="bankSave">＋ SAVE CURRENT</button>
+      </div>
+      <div id="bankList" class="bank-grid"></div>
+    </div>
+  </div>
 
   <script type="module" src="js/main.js"></script>
 </body>
